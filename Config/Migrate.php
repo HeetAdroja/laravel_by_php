@@ -1,56 +1,144 @@
 <?php
 
-namespace Config;
-
-// use Database\Database;
-
 class Migrate
 {
-    protected $conn;
+    private $conn;
 
-    public function run()
+    public function connect(): void
     {
-        $db= new \Database\Database();
-;
-        $this->conn = $db->connect();
- 
-        $baseDir = __DIR__ . '/../../Database/Migration'; 
-        $migrated = [];
+        $this->conn = new PDO(
+            "mysql:host=localhost;dbname=laravel_By_php;charset=utf8mb4",
+            "root",
+            "",
+        );
+    }
 
+    public function run($migrateone): void
+    {
         $stmt = $this->conn->query("SELECT migration_table FROM migrations");
-        while ($row = $stmt->fetch()) {
-            $migrated[] = $row['migration_table'];
-        }
+        $migrated = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        $baseDir = __DIR__ . '/../Database/Migration';
 
-      
-        $allMigrations = glob($baseDir . '/*.php');
-        sort($allMigrations);
+        if ($migrateone == null) {
+            $files = glob($baseDir . '/*.php');
 
-        foreach ($allMigrations as $file) {
-            $filename = basename($file, '.php'); 
+            if (!$files) {
+                die("No migration files found");
+            }
 
-            if (!in_array($filename, $migrated)) {
-                require_once $file;
+            foreach ($files as $file) {
+                $filename = basename($file, '.php');
 
-                
-                $className = 'Database\Migration\\' . $filename; 
+                if (in_array($filename, $migrated)) {
+                    echo "Skipped: $filename";
+                    continue;
+                } else {
+                    require_once $file;
 
-                if (class_exists($className)) {
-                    $migrationInstance = new $className();
-                    $migrationInstance->up($this->conn);
+                    $class = "Database\\Migration\\$filename";
+                    if (!class_exists($class)) {
+                        die("Class not found: $class");
+                    }
 
+                    $this->conn->beginTransaction();
+                    (new $class())->up($this->conn);
                     $stmt = $this->conn->prepare("INSERT INTO migrations (migration_table) VALUES (?)");
                     $stmt->execute([$filename]);
-                    echo "Migration $filename created successfully.\n";
-                } else {
-                    echo "Migration class $className not found.\n";
+
+                    echo "Migrated: $filename";
                 }
-            } else {
-                echo "No new migration for $filename.\n";
             }
+        } else {
+            $file = $baseDir . '/' . $migrateone . '.php';
+            $filename = basename($file, '.php');
+
+            if (in_array($filename, $migrated)) {
+                echo "Skipped: $filename";
+            } else {
+                require_once $file;
+
+                $class = "Database\\Migration\\$filename";
+                if (!class_exists($class)) {
+                    die("Class not found: $class");
+                }
+
+                $this->conn->beginTransaction();
+                (new $class())->up($this->conn);
+                $stmt = $this->conn->prepare("INSERT INTO migrations (migration_table) VALUES (?)");
+                $stmt->execute([$filename]);
+
+                echo "Migrated: $filename";
+            }
+        }
+    }
+
+    public function rollback($rollbackone): void
+    {
+        $baseDir = __DIR__ . '/../Database/Migration';
+        if ($rollbackone == null) {
+            $stmt = $this->conn->query("SELECT migration_table FROM migrations ORDER BY id DESC LIMIT 1");
+            $lastMigration = $stmt->fetchColumn();
+
+            if (!$lastMigration) {
+                echo "No migrations to rollback.\n";
+                return;
+            }
+
+            $file = $baseDir . '/' . $lastMigration . '.php';
+            require_once $file;
+
+            $class = "Database\\Migration\\$lastMigration";
+            if (!class_exists($class)) {
+                die("Class not found: $class\n");
+            }
+            $this->conn->beginTransaction();
+            (new $class())->down($this->conn);
+
+            $stmt = $this->conn->prepare("DELETE FROM migrations WHERE migration_table = ?");
+            $stmt->execute([$lastMigration]);
+            echo "Rolled back: $lastMigration\n";
+        } else {
+
+            $stmt = $this->conn->prepare("SELECT migration_table FROM migrations WHERE migration_table = ?");
+            $stmt->execute([$rollbackone]);
+            $lastMigration = $stmt->fetchColumn(PDO::FETCH_ASSOC);
+
+            if (!$lastMigration) {
+                echo "No migrations to rollback.\n";
+                return;
+            }
+
+            $file = $baseDir . '/' . $lastMigration . '.php';
+            require_once $file;
+
+            $class = "Database\\Migration\\$lastMigration";
+            if (!class_exists($class)) {
+                die("Class not found: $class\n");
+            }
+            $this->conn->beginTransaction();
+            (new $class())->down($this->conn);
+
+            $stmt = $this->conn->prepare("DELETE FROM migrations WHERE migration_table = ?");
+            $stmt->execute([$lastMigration]);
+            echo "Rolled back: $lastMigration\n";
         }
     }
 }
 
 $migrate = new Migrate();
-$migrate->run();
+$migrate->connect();
+
+
+if ($argv[1] == 'rollback') {
+    if (isset($argv[2])) {
+        $migrate->rollback($rollbackone = $argv[2]);
+    } else {
+        $migrate->rollback($rollbackone = null);
+    }
+} elseif ($argv[1] == "migrate") {
+    if (isset($argv[2])) {
+        $migrate->run($migrateone = $argv[2]);
+    } else {
+        $migrate->run($migrateone = null);
+    }
+}

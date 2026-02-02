@@ -2,7 +2,7 @@
 
 namespace Database\Migration;
 
-class CreateUserTable
+class Create_User_Table
 {
     public function up($conn)
     {

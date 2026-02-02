@@ -20,6 +20,16 @@ $router->any(
     // [AuthMiddleware::class]
 );
 $router->any(
+    '/login',
+    [UserController::class, 'showLoginForm'],
+
+);
+$router->any(
+    '/submitlogin',
+    [UserController::class, 'login'],
+
+);
+$router->any(
     '/auth',
     [authcontroller::class, 'login'],
 );
