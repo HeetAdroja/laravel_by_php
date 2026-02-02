@@ -1,0 +1,53 @@
+>>functionality using core php<<
+
+
+>mvc structure
+
+>middleware 
+
+>service provider
+
+>mailer
+
+>routing
+
+>config
+
+>resources public folder
+
+>.env
+
+>autoload psr-4
+
+>public
+
+Laravel Feature	 Core PHP Equivalent
+Route	         if / switch
+Controller     	 PHP class
+Model	         SQL wrapper
+Eloquent	     Active Record
+Middleware	     include guard
+Blade	         echo templates
+Migration	     SQL files
+Artisan	         PHP scripts
+
+
+
+>>for service provider
+Request
+ ↓
+index.php
+ ↓
+Service Provider (register → boot)
+ ↓
+Request resolved from container
+ ↓
+Router::any()
+ ↓
+Middleware
+ ↓
+Controller::handle()
+ ↓
+Response
+
+>>for mogration

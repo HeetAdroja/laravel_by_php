@@ -1,0 +1,20 @@
+{
+    "name": "acer/laravel-framework-byphp",
+    "autoload": {
+        "psr-4": {
+            "App\\": "App/",
+            "Config\\": "Config/",
+            "Database\\":"Database/",
+            "Database\\Migration\\": "Database/Migration/"
+        }
+    },
+    "authors": [
+        {
+            "name": "heet1808",
+            "email": "hitpatel488@gmail.com"
+        }
+    ],
+    "require": {
+        "vlucas/phpdotenv": "^5.6"
+    }
+}
