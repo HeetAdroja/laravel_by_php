@@ -2,17 +2,15 @@
 
 namespace Database\Migration;
 
-class Create_User_Table
+class Create_Car_Table
 {
     public function up($conn)
     {
 
-        $sql = "CREATE TABLE IF NOT EXISTS users (
+        $sql = "CREATE TABLE IF NOT EXISTS cars (
             id INT(11) AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
-            email VARCHAR(100) NOT NULL UNIQUE,
-            password VARCHAR(255) NOT NULL,
-            role ENUM('user', 'admin') NOT NULL DEFAULT 'user',
+            brand VARCHAR(100) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )";
         $conn->exec($sql);
@@ -20,7 +18,7 @@ class Create_User_Table
 
     public function down($conn)
     {
-        $sql = "DROP TABLE IF EXISTS user;";
+        $sql = "DROP TABLE IF EXISTS cars;";
         $conn->exec($sql);
     }
 }

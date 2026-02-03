@@ -15,6 +15,5 @@ class databaseServiceProvider
         });
     }
 
-
     public function boot() {}
 }

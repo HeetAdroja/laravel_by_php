@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\User;
 use Config\Container;
+use Config\mailer;
 
 
 class UserController
@@ -36,39 +37,40 @@ class UserController
     public function Register()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            session_start();
+
             $_SESSION['user'] = $_POST['name'];
             $_SESSION['email'] = $_POST['email'];
             $passsword_hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
-
-
-            if ($this->db) {
-                $sql = "INSERT INTO users (name, email, password) VALUES (:name, :email, :password)";
-                $stmt = $this->db->prepare($sql);
-                $stmt->execute([
-                    ':name' => $_POST['name'],
-                    ':email' => $_POST['email'],
-                    ':password' => $passsword_hash
-                ]);
+            $token = $this->generate_secure_token(32);
+            if ($this->user->storeUser($_POST['name'], $_POST['email'], $passsword_hash, $token)) {
+                require_once __DIR__ . "/../../Resources/Views/Userdashboard.php";
+            } else {
+                echo $_SESSION['user'] . " not register successfully.";
             }
-
-            echo $_SESSION['user'] . " logged in successfully.";
         }
+    }
+    function generate_secure_token($length = 32)
+    {
+        $bytes = random_bytes($length / 2);
+        return bin2hex($bytes);
     }
     public function login()
     {
+
         if ($_SERVER['REQUEST_METHOD'] == "POST") {
+
             $email = $_POST['email'];
+            $_SESSION['email'] = $_POST['email'];
             $password = $_POST['password'];
             $user = $this->user->fetchUser($email);
             $dbpassword = $user['password'];
             $role = $user['role'];
 
             if (password_verify($password, $dbpassword)) {
-
                 if ($role === 'admin') {
                     require_once __DIR__ . "/../../Resources/Views/Admindashboard.php";
                 } else {
+                    echo $_SESSION['email'];
                     require_once __DIR__ . "/../../Resources/Views/Userdashboard.php";
                 }
             } else {

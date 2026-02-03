@@ -4,12 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>verification mail</title>
 </head>
 
 <body>
-    <h1>admin dashbord</h1>
-    <a href="/sendmail">send</a>
+    <h1>verification email for <?php echo $name ?></h1>
 </body>
 
 </html>

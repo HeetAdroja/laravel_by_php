@@ -1,0 +1,24 @@
+<?php
+
+namespace Database\Seeders;
+
+use Database\Factories\_;
+
+class _
+{
+
+    public function add($conn, _)
+    {
+        $sql = "INSERT INTO _ (_) VALUES (?,?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([_]);
+    }
+    public function run($conn, $faker)
+    {
+
+        for ($i = 1; $i <= _ ; $i++) {
+            $data = (new _ )->fakeproduct($faker);
+            $this->add($conn, _ );
+        }
+    }
+}

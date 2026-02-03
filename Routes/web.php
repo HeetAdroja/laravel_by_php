@@ -3,6 +3,7 @@
 use App\Controllers\UserController;
 use App\Middleware\AuthMiddleware;
 use App\Controllers\authcontroller;
+use App\Controllers\MailController;
 
 $router->any(
     '/',
@@ -32,4 +33,9 @@ $router->any(
 $router->any(
     '/auth',
     [authcontroller::class, 'login'],
+
+);
+$router->any(
+    '/sendmail',
+    [MailController::class, 'verify'],
 );

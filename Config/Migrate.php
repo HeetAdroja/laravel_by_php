@@ -1,18 +1,17 @@
 <?php
-
 class Migrate
 {
     private $conn;
 
-    public function connect(): void
+    public function connect()
     {
-        $this->conn = new PDO(
+        $this->conn = new \PDO(
             "mysql:host=localhost;dbname=laravel_By_php;charset=utf8mb4",
             "root",
             "",
         );
+        return $this->conn;
     }
-
     public function run($migrateone): void
     {
         $stmt = $this->conn->query("SELECT migration_table FROM migrations");
@@ -40,7 +39,7 @@ class Migrate
                         die("Class not found: $class");
                     }
 
-                    $this->conn->beginTransaction();
+
                     (new $class())->up($this->conn);
                     $stmt = $this->conn->prepare("INSERT INTO migrations (migration_table) VALUES (?)");
                     $stmt->execute([$filename]);
@@ -62,7 +61,7 @@ class Migrate
                     die("Class not found: $class");
                 }
 
-                $this->conn->beginTransaction();
+
                 (new $class())->up($this->conn);
                 $stmt = $this->conn->prepare("INSERT INTO migrations (migration_table) VALUES (?)");
                 $stmt->execute([$filename]);
@@ -91,7 +90,7 @@ class Migrate
             if (!class_exists($class)) {
                 die("Class not found: $class\n");
             }
-            $this->conn->beginTransaction();
+
             (new $class())->down($this->conn);
 
             $stmt = $this->conn->prepare("DELETE FROM migrations WHERE migration_table = ?");
@@ -101,7 +100,7 @@ class Migrate
 
             $stmt = $this->conn->prepare("SELECT migration_table FROM migrations WHERE migration_table = ?");
             $stmt->execute([$rollbackone]);
-            $lastMigration = $stmt->fetchColumn(PDO::FETCH_ASSOC);
+            $lastMigration = $stmt->fetch(PDO::FETCH_COLUMN);
 
             if (!$lastMigration) {
                 echo "No migrations to rollback.\n";
@@ -115,7 +114,7 @@ class Migrate
             if (!class_exists($class)) {
                 die("Class not found: $class\n");
             }
-            $this->conn->beginTransaction();
+
             (new $class())->down($this->conn);
 
             $stmt = $this->conn->prepare("DELETE FROM migrations WHERE migration_table = ?");
@@ -128,16 +127,15 @@ class Migrate
 $migrate = new Migrate();
 $migrate->connect();
 
-
 if ($argv[1] == 'rollback') {
     if (isset($argv[2])) {
-        $migrate->rollback($rollbackone = $argv[2]);
+        $migrate->rollback($argv[2]);
     } else {
         $migrate->rollback($rollbackone = null);
     }
 } elseif ($argv[1] == "migrate") {
     if (isset($argv[2])) {
-        $migrate->run($migrateone = $argv[2]);
+        $migrate->run($argv[2]);
     } else {
         $migrate->run($migrateone = null);
     }
